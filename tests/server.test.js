@@ -10,7 +10,9 @@ const todos = [{
   title: 'First test todo'
 }, {
   _id: new ObjectID(),
-  title: 'Second test todo'
+  title: 'Second test todo',
+  completed: true,
+  completedAt: 3456
 }];
 
 
@@ -20,7 +22,8 @@ beforeEach((done) => {
   }).then(() => done());
 });
 
-describe('POST /todos', () => {
+describe('POST /todos', (todo) => {
+
   it('creates a todo', (done) => {
     var title = 'Test todo';
 
@@ -64,7 +67,7 @@ describe('POST /todos', () => {
 });
 
 
-//
+
 describe('GET /todos', () => {
 
   it('should get all todos', (done) => {
@@ -106,6 +109,101 @@ describe('GET /todos/:id', () => {
       .get(`/todos/id`)
       .expect(404)
       .end(done());
+  });
+});
 
+describe('DELETE /todos/:id', () => {
+
+  it('should delete a todo', (done) => {
+    request(app)
+      .delete(`/todos/${todos[0]._id.toHexString()}`)
+      .expect(200)
+      .end((err, res) => {
+        if(err) {
+          return done(err);
+        }
+
+        Todo.findById(todos[0]._id.toHexString()).then((todo) => {
+          expect(todo).toNotExist();
+          done();
+        }).catch((e) => { done(e) });
+      })
+  });
+
+  it('should return 404 with invalid id', (done) => {
+    request(app)
+      .delete(`/todos/123`)
+      .expect(404)
+      .end(done())
+  });
+
+
+  it('should return 404', (done) => {
+    var id = new ObjectID().toHexString()
+    request(app)
+      .delete(`/todos/${id}`)
+      .expect(404)
+      .end(done())
+  })
+});
+
+describe('PATCH /todos/:id', () => {
+
+  it('should return 404 with invalid id', (done) => {
+    request(app)
+      .patch(`/todos/123`)
+      .expect(404)
+      .end(done())
+  });
+
+  it('should return 404', (done) => {
+    var id = new ObjectID().toHexString()
+    request(app)
+      .delete(`/patch/${id}`)
+      .expect(404)
+      .end(done())
+  })
+
+  it('should update when changes are there', (done) => {
+    var id = todos[0]._id.toHexString();
+
+    body = { title: 'something new', completed: true}
+
+    request(app)
+      .patch(`/todos/${id}`)
+      .send(body)
+      .expect(200)
+      .end((err, res) => {
+        if(err) {
+          return done(e);
+        }
+
+        Todo.findById(id).then((todo) => {
+          expect(todo.title).toBe(body.title)
+          expect(todo.completed).toBe(body.completed)
+          expect(todo.completedAt).toBeA('number')
+          return done()
+        }).catch((e) => { return done(e)})
+      })
+  });
+
+  it('should update completedAt to be nil when completed is false', (done) => {
+    var id = todos[1]._id.toHexString();
+    var text = 'This should be the new text!!';
+    var body = {title: text, completed: false}
+
+    request(app)
+      .patch(`/todos/${id}`)
+      .send(body)
+      .expect(200)
+      .end((err, res) => {
+        if(err) { return done() }
+        Todo.findById(id).then((todo) => {
+          expect(todo.title).toBe(text)
+          expect(todo.completed).toBe(false)
+          expect(todo.completedAt).toNotExist()
+          done()
+        }).catch((e) => { return done(e)})
+      })
   });
 });

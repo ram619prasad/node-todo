@@ -4,8 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "node server/server.js",
-    "test": "mocha tests/**/*.test.js",
+    "start": "export NODE_ENV=development && node server/server.js",
+    "test": "export NODE_ENV=test && mocha --timeout 15000 tests/**/*.test.js",
     "test-watch": "nodemon --exec 'npm test'"
   },
   "engines": {
@@ -17,6 +17,7 @@
   "dependencies": {
     "body-parser": "^1.17.2",
     "express": "^4.15.3",
+    "lodash": "^4.17.4",
     "mongodb": "^2.2.30",
     "mongoose": "^4.11.4"
   },
