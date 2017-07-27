@@ -49,6 +49,24 @@ app.get('/todos/:id', (req, res) => {
   })
 });
 
+app.delete('/todos/:id', (req, res) => {
+  var id = req.params.id;
+
+  if(!ObjectID.isValid(id)) {
+    res.sendStatus(404).send();
+  }
+
+  Todo.findByIdAndRemove(id).then((todo) => {
+    if(!todo) {
+      res.sendStatus(404).send();
+    }
+    res.send({todo});
+  }, (err) => {
+    res.sendStatus(400).send(err);
+  })
+
+});
+
 app.listen(PORT, () => {
   console.log(`Expres Server is running on port; ${PORT}`);
 });
